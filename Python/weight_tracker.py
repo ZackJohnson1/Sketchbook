@@ -21,10 +21,11 @@ def plot_weight_graph():
         return
 
     df = pd.read_csv(FILE_NAME)
+
     plt.figure(figsize=(10, 6))
     plt.plot(df['Date'], df['Weight'], '-o', color='blue', label="Weight")
     plt.xlabel("Date")
-    plt.ylabel("Weight (in kg)")
+    plt.ylabel("Weight (in lbs)")  # Directly indicate lbs
     plt.title("Weight Over Time")
     plt.xticks(rotation=45)
     plt.tight_layout()
@@ -41,7 +42,7 @@ def main():
         choice = input("Enter your choice: ")
 
         if choice == '1':
-            weight = float(input("Enter your weight (in kg): "))
+            weight = float(input("Enter your weight (in lbs): "))  # Directly ask for lbs
             add_weight_entry(weight)
             print("Weight entry added.")
         elif choice == '2':
