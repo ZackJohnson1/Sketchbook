@@ -1,5 +1,10 @@
 import csv
 import random
+import os
+from pymongo import MongoClient
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Initialize a hash table (dictionary)
 hash_table = {}
@@ -18,13 +23,36 @@ def save_to_csv(hash_table, filename="default.csv"):
     """Saves the hash table to a CSV file."""
     if not filename.endswith('.csv'):
         filename += '.csv'
-    
+
     with open(filename, 'w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(["Profile Key", "Name", "Age", "City", "State", "Country"])
         
         for key, profile in hash_table.items():
             writer.writerow([key, profile.get('name', ''), profile.get('age', ''), profile.get('city', ''), profile.get('state', ''), profile.get('country', '')])
+
+
+def save_to_mongodb(hash_table):
+    connection_uri = os.getenv('MONGODB_URI')
+    
+    # Diagnostic output:
+    print(f"Connecting to MongoDB with URI: {connection_uri}")
+    
+    try:
+        client = MongoClient(connection_uri)
+        db = client["cluster0"]
+        collection = db.profiles
+
+        for key, profile in hash_table.items():
+            profile["_id"] = key
+            filter_query = {"_id": key}
+            collection.update_one(filter_query, {"$set": profile}, upsert=True)
+
+        print("Profiles saved to MongoDB.")
+    except Exception as e:
+        print("An error occurred while saving to MongoDB:", e)
+
+
 
 def input_profile():
     while True:
@@ -77,7 +105,8 @@ def main():
         print("\nMenu:")
         print("1. Add a new profile")
         print("2. Save profiles to CSV")
-        print("3. Exit")
+        print("3. Save profiles to MongoDB")
+        print("4. Exit")
         
         choice = input("Choose an option: ")
         
@@ -94,8 +123,12 @@ def main():
             else:
                 save_to_csv(hash_table)
             print(f"Saved to {filename if change_filename == 'yes' else 'default.csv'}")
-            
+        
         elif choice == '3':
+            save_to_mongodb(hash_table)
+            print("Profiles saved to MongoDB.")
+            
+        elif choice == '4':
             print("Goodbye!")
             break
             
